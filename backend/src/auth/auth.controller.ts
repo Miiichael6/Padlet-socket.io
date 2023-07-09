@@ -1,57 +1,110 @@
 import { Request, Response } from "express";
-// controllers.ts
+import { User as UserRepository } from "../entities";
+import bcrypt from "bcrypt";
+import { handleErrors } from "../utils/handlerErrors";
 
-// Controller to get all items
 export const findAll = async (req: Request, res: Response) => {
-  // Logic to fetch all items from the database
-  // ...
+  const users = await UserRepository.find({});
 
-  res.send("Get all items");
+  return res.send(users);
 };
 
-// Controller to create a new item
-export const create = async (req: Request, res: Response) => {
-  // Get the data from the request body
-  const { name, description } = req.body;
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { email, firstname, lastname, password } = req.body;
 
-  // Logic to create a new item in the database
-  // ...
+    const user = UserRepository.create({ email, firstname, lastname });
 
-  res.send(`New item created: name, description`);
+    const salt = bcrypt.genSaltSync(10);
+    user.password = bcrypt.hashSync(password, salt);
+
+    await UserRepository.save(user);
+
+    return res.send({ created: true, user });
+  } catch (error: any) {
+    return res.status(500).send({
+      message: error.message,
+      detail: error.detail,
+      errorCode: error.code,
+    });
+  }
 };
 
-// Controller to get an item by ID
+export const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  try {
+    const user = await UserRepository.findOneBy({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .send({ message: `incorrect email or does not exist` });
+    }
+
+    const confirmPassword = bcrypt.compareSync(password, user.password);
+
+    if (!confirmPassword) {
+      return res
+        .status(401)
+        .send({ message: "Email or Password incorrect, please try again" });
+    }
+
+    return res.send(user)
+  } catch (error: any) {
+    return res.status(500).send({
+      message: error.message,
+      detail: error.detail,
+      errorCode: error.code,
+    });
+  }
+};
+
 export const findOne = async (req: Request, res: Response) => {
-  // Get the ID from the route parameter
   const { id } = req.params;
+  try {
+    const user = await UserRepository.findOneBy({ id });
 
-  // Logic to fetch an item by ID from the database
-  // ...
+    if (!user) {
+      return res
+        .status(404)
+        .send({ message: `el usuario con <<${id}>> no existe` });
+    }
 
-  res.send(`Get item by ID: id`);
+    return res.status(200).send(user);
+  } catch (error) {
+    return res.status(400).send(handleErrors(error));
+  }
 };
 
-// Controller to update an item by ID
 export const updateOne = async (req: Request, res: Response) => {
-  // Get the ID from the route parameter
   const { id } = req.params;
-
-  // Get the data from the request body
   const { name, description } = req.body;
-
-  // Logic to update an item by ID in the database
-  // ...
-
   res.send(`Update item by ID: id`);
 };
 
-// Controller to remove an item by ID
 export const removeOne = async (req: Request, res: Response) => {
-  // Get the ID from the route parameter
   const { id } = req.params;
+  try {
+    const userExist = await UserRepository.findOne({ where: { id: id } });
 
-  // Logic to remove an item by ID from the database
-  // ...
+    if (!userExist) {
+      return res
+        .status(404)
+        .send({ message: `El Usuario con Id: '${id}' no existe` });
+    }
 
-  res.send(`Remove item by ID: id`);
+    const result = await UserRepository.delete({ id: id });
+
+    if (result.affected === 0) {
+      return res.status(201).send({
+        message: `error del servidor Usuario con Id: <<${id}>> no ha sido eliminado`,
+      });
+    }
+
+    return res
+      .status(200)
+      .send({ message: `User with id => <<${id}>> have been eliminated` });
+  } catch (error: any) {
+    return res.status(501).send(handleErrors(error));
+  }
 };
