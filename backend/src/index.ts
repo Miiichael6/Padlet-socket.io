@@ -1,11 +1,19 @@
 import { Server as SocketServer } from "socket.io";
 import httpServer from "./app";
 import socketsRoom from "./sockets/main";
+import { AppDataSource } from "./database/db";
 
-const onPort = process.env.PORT || 4000;
-const io = new SocketServer(httpServer);
+const runServer = async () => {
+  await AppDataSource.initialize();
+  console.log("database connected")
+  const onPort = process.env.PORT || 4000;
+  const io = new SocketServer(httpServer);
 
-socketsRoom(io);
+  // configuración de sockets
+  socketsRoom(io);
 
-httpServer.listen(onPort);
-console.log(`Server on port http://localhost:${onPort}`);
+  httpServer.listen(onPort);
+  console.log(`Server on port http://localhost:${onPort}`);
+};
+
+runServer();
