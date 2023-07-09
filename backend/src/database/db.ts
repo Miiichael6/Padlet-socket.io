@@ -10,6 +10,7 @@ export const AppDataSource = new DataSource({
   port: Number(process.env.DB_PORT),
   database: process.env.DB_NAME,
   entities: [User, Post],
+  
   // logging: true,
   synchronize: process.env.NODE_ENV === "production" ? false : true,
 });

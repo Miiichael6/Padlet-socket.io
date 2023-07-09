@@ -4,6 +4,9 @@
 ### dotenv ###
 .env
 
+### docker compose ###
+postgres
+
 ### ExpressionEngine ###
 .DS_Store
 
