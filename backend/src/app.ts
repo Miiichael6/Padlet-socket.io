@@ -1,11 +1,15 @@
 import express, { Express } from "express";
 import http from "http";
 import router from "./router/main.router";
+import { corsOptions } from "./config/cors-config";
+import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
 // initialize express server
 const app: Express = express();
 
-// static Server
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api", router);
