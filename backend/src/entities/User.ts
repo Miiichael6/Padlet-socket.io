@@ -29,6 +29,9 @@ export class User extends BaseEntity {
   @OneToMany(() => Post, (post) => post.user, { onDelete: "CASCADE" })
   posts?: Post[];
 
+  @Column({type: "simple-array", default: "user"})
+  roles: string[]
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
