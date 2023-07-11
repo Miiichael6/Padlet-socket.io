@@ -4,10 +4,6 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-// interface User {
-//   id: string;
-// }
-
 export interface AuthRequest extends Request {
   user?: UserRepository;
 }
@@ -48,13 +44,13 @@ const checkAuth = async (
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(400).json({ error: "Token doesn't exist" });
+    return res.status(400).json({ message: "JWT token doesn't exist" });
   }
 
   const user = await getUserFromToken(token);
 
   if (!user) {
-    return res.status(400).json({ error: "user does not exist, sorry" });
+    return res.status(400).json({ message: "user caducate or user does not exist" });
   }
 
   req.user = user;

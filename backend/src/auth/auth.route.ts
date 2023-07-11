@@ -14,10 +14,14 @@ import { Router } from "express";
 const router = Router();
 
 router.get("/", [checkAuth, checkAuthorization("user")], findAll);
-router.get("/profile", [checkAuth], profile);
+router.get(
+  "/profile",
+  [checkAuth, checkAuthorization("user", "admin")],
+  profile
+);
 router.post("/login", login);
 router.post("/register", register);
-router.get("/:id", findOne);
+router.get("/:id", [checkAuth], findOne);
 router.put("/:id", updateOne);
 router.delete("/:id", [checkAuth, checkAuthorization("user")], removeOne);
 
