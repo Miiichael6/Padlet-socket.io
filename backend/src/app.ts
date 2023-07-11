@@ -1,13 +1,13 @@
-import express, { Express } from "express";
+import express from "express";
 import http from "http";
+import dotenv from "dotenv";
+import cors from "cors";
 import router from "./router/main.router";
 import { corsOptions } from "./config/cors-config";
-import cors from "cors";
-import dotenv from "dotenv";
 dotenv.config();
 
 // initialize express server
-const app: Express = express();
+const app = express();
 
 app.use(cors(corsOptions));
 app.use(express.json());

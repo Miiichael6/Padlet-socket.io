@@ -20,7 +20,7 @@ export class Post extends BaseEntity {
   @Column({ type: "text", unique: false })
   content: string;
 
-  @ManyToOne(() => User, (user) => user.posts, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, (user) => user.posts, { onDelete: "CASCADE", nullable:false })
   user!: User;
 
   @UpdateDateColumn()

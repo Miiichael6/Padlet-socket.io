@@ -95,7 +95,7 @@ export const findOne = async (req: Request, res: Response) => {
 
     return res.status(200).send(user);
   } catch (error) {
-    return res.status(400).send(handleErrors(error));
+    return res.status(500).send(handleErrors(error));
   }
 };
 

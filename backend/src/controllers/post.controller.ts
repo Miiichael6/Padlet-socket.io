@@ -1,34 +1,52 @@
 import { Request, Response } from "express";
-// controllers.ts
+import { Post as PostRepository } from "../entities";
+import { handleErrors } from "../utils/handlerErrors";
+import { AuthRequest } from "../middlewares/checkAuth.middleware";
 
-// Controller to get all items
 export const findAll = async (req: Request, res: Response) => {
-  // Logic to fetch all items from the database
-  // ...
+  const posts = await PostRepository.find({
+    relations: ["user"],
+  });
 
-  res.send("Get all items");
+  const dataWithoutTooMuchContent = posts.map((post) => {
+    return {
+      ...post,
+      user: {
+        id: post.user.id,
+        lastname: post.user.lastname,
+        firstname: post.user.firstname,
+        email: post.user.email,
+        roles: post.user.roles,
+      },
+    };
+  });
+
+  return res.send(dataWithoutTooMuchContent);
 };
 
-// Controller to create a new item
 export const create = async (req: Request, res: Response) => {
-  // Get the data from the request body
-  const { name, description } = req.body;
+  const { title, content, user: userId } = req.body;
+  try {
+    const post = PostRepository.create({ title, content, user: userId });
+    await PostRepository.save(post);
 
-  // Logic to create a new item in the database
-  // ...
-
-  res.send(`New item created: name, description`);
+    return res.send(post);
+  } catch (error) {
+    return res.status(500).send(handleErrors(error));
+  }
 };
 
 // Controller to get an item by ID
 export const findOne = async (req: Request, res: Response) => {
-  // Get the ID from the route parameter
   const { id } = req.params;
 
-  // Logic to fetch an item by ID from the database
-  // ...
+  const post = await PostRepository.findOneBy({id})
 
-  res.send(`Get item by ID: id`);
+  if(!post) {
+    return res.status(404).send({message: `post with Id: ${id} does not exist`})
+  }
+
+  return res.send(post)
 };
 
 // Controller to update an item by ID
@@ -45,13 +63,30 @@ export const updateOne = async (req: Request, res: Response) => {
   res.send(`Update item by ID: id`);
 };
 
-// Controller to remove an item by ID
-export const removeOne = async (req: Request, res: Response) => {
-  // Get the ID from the route parameter
+export const removeOne = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
+  const { user } = req;
 
-  // Logic to remove an item by ID from the database
-  // ...
+  const postExist = await PostRepository.findOne({
+    where: { id: id },
+    relations: { user: true },
+  });
 
-  res.send(`Remove item by ID: id`);
+  if (!postExist) {
+    return res
+      .status(404)
+      .send({ message: `El post with Id ${postExist} does not exist` });
+  }
+
+  console.log(user?.id === postExist.user.id)
+
+  if (postExist.user.id !== user!.id) {
+    return res.status(401).send({
+      message: "You're not allowed to delete a post if this is not yours",
+    });
+  }
+
+  const postToDelete = await PostRepository.delete(id);
+
+  return res.send({ deleted: true, post: postToDelete });
 };

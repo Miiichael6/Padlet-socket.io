@@ -13,7 +13,7 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get("/", [checkAuth, checkAuthorization("user")], findAll);
+router.get("/", findAll);
 router.get(
   "/profile",
   [checkAuth, checkAuthorization("user", "admin")],
